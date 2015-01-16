@@ -567,6 +567,16 @@ void UserListModel::repaintItem(const UserListItem *item){
     repaintData(createIndex(r, COLUMN_NICK, const_cast<UserListItem*>(item)), createIndex(r, COLUMN_EMAIL, const_cast<UserListItem*>(item)));
 }
 
+QList<Identity> UserListModel::getUserIdentities() const {
+  QList<Identity> ret;
+  QList<UserListItem *> userListItems = users.values();
+  QList<UserListItem *>::const_iterator i;
+  for (i = userListItems.constBegin(); i != userListItems.constEnd(); ++i) {
+    ret.push_back( (*i)->getIdentity() );
+  }
+  return ret;
+}
+
 UserListItem::UserListItem()
     : _isOp(false)
     , _isFav(false)

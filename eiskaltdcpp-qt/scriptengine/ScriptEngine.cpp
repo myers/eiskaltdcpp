@@ -26,6 +26,7 @@
 #include "GlobalTimer.h"
 
 #include "scriptengine/ClientManagerScript.h"
+#include "scriptengine/QueueManagerScript.h"
 #include "scriptengine/HashManagerScript.h"
 #include "scriptengine/LogManagerScript.h"
 #include "scriptengine/MainWindowScript.h"
@@ -77,6 +78,7 @@ ScriptEngine::~ScriptEngine(){
 
     ClientManagerScript::deleteInstance();
     HashManagerScript::deleteInstance();
+    QueueManagerScript::deleteInstance();
 }
 
 void ScriptEngine::loadScripts(){
@@ -258,7 +260,7 @@ void ScriptEngine::registerStaticMembers(QScriptEngine &engine){
     static QStringList staticMembers = QStringList() << "AntiSpam"          << "DownloadQueue"  << "FavoriteHubs"
                                                      << "Notification"      << "HubManager"     << "ClientManagerScript"
                                                      << "LogManagerScript"  << "FavoriteUsers"  << "HashManagerScript"
-                                                     << "WulforUtil"        << "WulforSettings";
+                                                     << "WulforUtil"        << "WulforSettings" << "QueueManagerScript";
 
     for (const auto &cl : staticMembers) {
         QScriptValue ct = engine.newFunction(staticMemberConstructor);
@@ -415,6 +417,15 @@ static QScriptValue staticMemberConstructor(QScriptContext *context, QScriptEngi
         }
 
         obj = qobject_cast<QObject*>(ClientManagerScript::getInstance());
+    }
+    else if (className == "QueueManagerScript"){
+        if (!QueueManagerScript::getInstance()){
+            QueueManagerScript::newInstance();
+
+            QueueManagerScript::getInstance()->moveToThread(MainWindow::getInstance()->thread());
+        }
+
+        obj = qobject_cast<QObject*>(QueueManagerScript::getInstance());
     }
     else if (className == "HashManagerScript"){
         if (!HashManagerScript::getInstance()){

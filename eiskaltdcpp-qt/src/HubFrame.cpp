@@ -2096,6 +2096,17 @@ bool HubFrame::isOP(const QString& nick) {
     return (item? item->isOP() : false);
 }
 
+QStringList HubFrame::getNicks() const {
+    Q_D(const HubFrame);
+
+    QStringList ret;
+    QList<Identity> users = d->model->getUserIdentities();
+    QList<Identity>::const_iterator i;
+    for (i = users.constBegin(); i != users.constEnd(); ++i) {
+      ret.push_back( _q((*i).getNick()) );
+    }
+    return ret;
+}
 
 void HubFrame::userUpdated(const UserPtr &user, const dcpp::Identity &id){
     Q_D(HubFrame);

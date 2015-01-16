@@ -143,6 +143,7 @@ public:
     QStringList matchNicksAny(const QString &part, bool stripTags = false) const;
 
     QStringList findItems(const QString &part, Qt::MatchFlags flags, int column) const;
+    QList<Identity> getUserIdentities() const;
 
     void repaint() { emit layoutChanged(); }
     void repaintItem(const UserListItem *item);

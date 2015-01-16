@@ -201,6 +201,7 @@ public Q_SLOTS:
     void getStatistic(quint64 &users, quint64 &share) const;
     bool isConnected() const;
     bool isOP(const QString &nick);
+    QStringList getNicks() const;
 
     void browseUserFiles(const QString&, bool=false);
 

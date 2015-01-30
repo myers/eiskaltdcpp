@@ -26,7 +26,7 @@ Q_OBJECT
 friend class dcpp::Singleton<QueueManagerScript>;
 
 public Q_SLOTS:
-    bool add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser);
+    bool add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser, const QString& aHub);
 
 private:
     QueueManagerScript(QObject *parent = 0);

@@ -29,12 +29,16 @@ QueueManagerScript::~QueueManagerScript() {
     //QM->removeListener(this);
 }
 
-bool QueueManagerScript::add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser) {
+bool QueueManagerScript::add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser, const QString& aHub) {
+    dcpp::ClientManager *CM = dcpp::ClientManager::getInstance();
+    UserPtr user = CM->getUser(aUser.toStdString(), aHub.toStdString());
+
     // hard to get a UserPtr to create a HintedUser, so just ignore aUser for now
     QString path=_q(SETTING(DOWNLOAD_DIRECTORY));
     QString target = path + (path.endsWith(QDir::separator())? QString("") : QDir::separator()) + aTarget;
     try {
-      QM->add(_tq(target), aSize, TTHValue(_tq(root)));
+      //QM->add(_tq(target), aSize, TTHValue(_tq(root)));
+      QM->add( _tq(target), aSize, TTHValue(_tq(root)), HintedUser(user, aHub.toStdString()) );
     } catch (const Exception &) {
       return false;
     }

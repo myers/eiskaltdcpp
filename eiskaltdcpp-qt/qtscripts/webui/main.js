@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **************************************************************************/
- 
+
 Import("qt.core");
 Import("qt.network");
 
@@ -96,16 +96,16 @@ HttpServer.prototype.sendResponse = function( socket, path, headers, body ) {
   }
 
   try {
-     content = "HTTP/1.1 " + userResponse.status + "\n"
-     content += "Content-Type: " + userResponse.mimeType + "\n";
-     content += "Server: AmarokServer\n";
-     //content += "Content-Length: " + userResponse.content.length + "\n";
-     content += "\r\n";
-     
-     var writeMe = new QByteArray();
-     writeMe.append( content );
-     writeMe.append( userResponse.content );
-     socket.write( writeMe );
+    content = "HTTP/1.1 " + userResponse.status + "\n"
+    content += "Content-Type: " + userResponse.mimeType + "\n";
+    content += "Server: AmarokServer\n";
+    //content += "Content-Length: " + userResponse.content.length + "\n";
+    content += "\r\n";
+
+    var writeMe = new QByteArray();
+    writeMe.append( content );
+    writeMe.append( userResponse.content );
+    socket.write( writeMe );
   } catch( e ) {
     printErr( e );
   }
@@ -121,7 +121,7 @@ function ApiFacade() {
 
 ApiFacade.prototype.peers = function peers() {
   var nicks = []
-  
+
   var hubManager = HubManager();
   var hubList = hubManager.getHubs();
 
@@ -136,9 +136,15 @@ ApiFacade.prototype.peers = function peers() {
   return nicks;
 }
 
-ApiFacade.prototype.download = function download(destPath, size, tthRoot, user) {
+ApiFacade.prototype.download = function download(destPath, size, tthRoot, users) {
   var queueManager = QueueManagerScript();
-  return queueManager.add(destPath, size, tthRoot, user);
+
+  for(var ii = 0, users_len = users.length; ii < users_len; ii++) {
+    var s = users[ii].split('$');
+    queueManager.add(destPath, size, tthRoot, s[0], s[1]);
+  }
+
+  return true
 }
 
 var httpServer = new HttpServer(8070);

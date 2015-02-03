@@ -147,13 +147,48 @@ ApiFacade.prototype.download = function download(destPath, size, tthRoot, users)
   return true
 }
 
+ApiFacade.prototype.downloadFilelist = function downloadFilelist(user) {
+  var queueManager = QueueManagerScript();
+
+  var s = user.split('$');
+  queueManager.addFilelist(s[0], s[1]);
+  return true
+}
+
+function jsonResponse(content) {
+  return {
+    mimeType: "application/json",
+    content: JSON.stringify(content)
+  };
+}
+
+function jsonRpcReturn(id, result) {
+  return {jsonrpc: '2.0', id: id, result: result};
+}
+
+var JSON_RPC_IMPLEMENTATION_ERROR = -32000;
+var JSON_RPC_PARSE_ERROR = -32000;
+function jsonRpcError(id, message, code) {
+  if (code == null) {
+    code = JSON_RPC_IMPLEMENTATION_ERROR;
+  }
+  return {jsonrpc: '2.0', id: id, error: {code: code, message: message}};
+}
+
+  
 var httpServer = new HttpServer(8070);
 var apiFacade = new ApiFacade();
 httpServer.register("/api", function(path, headers, body) {
-  var request = JSON.parse(body);
-  var result = apiFacade[request.method].apply(apiFacade, request.params);
-  return {
-    mimeType: "application/json",
-    content: JSON.stringify({jsonrpc: '2.0', id: request['id'], result: result})
-  };
+  var result;
+  try {
+    var request = JSON.parse(body);
+  } catch(e) {
+    return jsonResponse(jsonRpcError(null, e, JSON_RPC_PARSE_ERROR));
+  }
+  try {
+    result = apiFacade[request.method].apply(apiFacade, request.params);
+  } catch(e) {
+    return jsonResponse(jsonRpcError(request['id'], e));
+  }
+  return jsonResponse(jsonRpcReturn(request['id'], result));
 });

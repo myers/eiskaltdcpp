@@ -17,16 +17,28 @@
 #include "dcpp/Singleton.h"
 #include "dcpp/QueueManager.h"
 #include "dcpp/Client.h"
+#include "dcpp/QueueManagerListener.h"
+#include "dcpp/QueueItem.h"
 
 class QueueManagerScript :
         public QObject,
-        public dcpp::Singleton<QueueManagerScript>
+        public dcpp::Singleton<QueueManagerScript>,
+        public dcpp::QueueManagerListener
 {
 Q_OBJECT
 friend class dcpp::Singleton<QueueManagerScript>;
 
 public Q_SLOTS:
     bool add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser, const QString& aHub);
+    bool addFilelist(const QString& aUser, const QString& aHub);
+
+Q_SIGNALS:
+    void finished(const QString &filePath);
+    void sourcesUpdated(const QString &tth, const QStringList &badSources);
+
+protected:
+    virtual void on(Finished, dcpp::QueueItem*, const dcpp::string&, int64_t) throw();
+    virtual void on(SourcesUpdated, dcpp::QueueItem*) throw();
 
 private:
     QueueManagerScript(QObject *parent = 0);

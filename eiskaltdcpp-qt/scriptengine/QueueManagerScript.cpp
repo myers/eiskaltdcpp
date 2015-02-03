@@ -16,31 +16,56 @@
  
 #include "dcpp/CID.h"
 #include "dcpp/User.h"
+#include "dcpp/QueueItem.h"
 
 QueueManagerScript::QueueManagerScript(QObject *parent) :
     QObject(parent)
 {
     QM = dcpp::QueueManager::getInstance();
 
-    //QM->addListener(this);
+    QM->addListener(this);
 }
 
 QueueManagerScript::~QueueManagerScript() {
-    //QM->removeListener(this);
+    QM->removeListener(this);
 }
 
 bool QueueManagerScript::add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser, const QString& aHub) {
     dcpp::ClientManager *CM = dcpp::ClientManager::getInstance();
     UserPtr user = CM->getUser(aUser.toStdString(), aHub.toStdString());
 
-    // hard to get a UserPtr to create a HintedUser, so just ignore aUser for now
     QString path=_q(SETTING(DOWNLOAD_DIRECTORY));
     QString target = path + (path.endsWith(QDir::separator())? QString("") : QDir::separator()) + aTarget;
     try {
-      //QM->add(_tq(target), aSize, TTHValue(_tq(root)));
       QM->add( _tq(target), aSize, TTHValue(_tq(root)), HintedUser(user, aHub.toStdString()) );
     } catch (const Exception &) {
       return false;
     }
     return true;
+}
+
+bool QueueManagerScript::addFilelist(const QString& aUser, const QString& aHub) {
+    dcpp::ClientManager *CM = dcpp::ClientManager::getInstance();
+    UserPtr user = CM->getUser(aUser.toStdString(), aHub.toStdString());
+
+    try {
+      QM->addList( HintedUser(user, aHub.toStdString()), 0 );
+    } catch (const Exception &) {
+      return false;
+    }
+    return true;
+}
+
+void QueueManagerScript::on(Finished, QueueItem* item, const dcpp::string& something, int64_t some_number) throw(){
+    emit finished(_q(item->getTarget()));
+}
+
+void QueueManagerScript::on(SourcesUpdated, dcpp::QueueItem* item) throw() {
+    QStringList list;
+    dcpp::QueueItem::SourceList badSources = item->getBadSources();
+    for (const auto& s : item->getBadSources()) {
+        dcpp::CID cid = s.getUser().user->getCID();
+        list.push_back(_q(cid.toBase32()));
+    }
+    emit sourcesUpdated(_q(item->getTTH().toBase32()), list);
 }

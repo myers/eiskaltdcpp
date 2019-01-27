@@ -140,3 +140,10 @@ void ClientManagerScript::on(ClientDisconnected, dcpp::Client *cl) throw(){
     emit disconnected(_q(cl->getHubUrl()));
 }
 
+void ClientManagerScript::on(UserConnected, const dcpp::UserPtr& user) noexcept {
+    const dcpp::OnlineUser *onlineUser = CM->findOnlineUser(user->getCID(), "", false);
+    if (onlineUser == 0) {
+      return;
+    }
+    emit userConnected(_q(onlineUser->getIdentity().getNick()), _q(onlineUser->getClient().getHubUrl()));
+}

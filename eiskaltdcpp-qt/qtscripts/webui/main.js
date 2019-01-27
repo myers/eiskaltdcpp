@@ -155,6 +155,25 @@ ApiFacade.prototype.downloadFilelist = function downloadFilelist(user) {
   return true
 }
 
+ApiFacade.prototype.downloadQueue = function downloadQueue() {
+  var out = DownloadQueue().getSources();
+  var ret = {}
+  out.forEach(function(download) {
+     var s = download.split('::', 2);
+     var sources = s[1].trim().split(' ');
+     if (sources.length === 1 && sources[0] === "") {
+        sources = [];
+     }
+     ret[s[0]] = sources;
+  });
+  return ret;
+}
+
+ApiFacade.prototype.removeDownload = function removeDownload(target) {
+  DownloadQueue().removeTarget(target);
+  return null;
+}
+
 function jsonResponse(content) {
   return {
     mimeType: "application/json",

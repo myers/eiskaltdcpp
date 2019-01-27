@@ -48,11 +48,13 @@ Q_SIGNALS:
     void connected(const QString &url);
     void updated(const QString &url);
     void disconnected(const QString &url);
+    void userConnected(const QString &nick, const QString &hub);
 
 protected:
     virtual void on(ClientConnected, dcpp::Client*) throw();
     virtual void on(ClientUpdated, dcpp::Client*) throw();
     virtual void on(ClientDisconnected, dcpp::Client*) throw();
+    virtual void on(UserConnected, const dcpp::UserPtr&) throw();
 
 private:
     ClientManagerScript(QObject *parent = nullptr);

@@ -71,9 +71,9 @@ HttpServer.prototype.fourOhFour = function(path) {
     mimeType: 'text/html',
     status: '404 Not found',
     content: [
-      '<html><head><title>File not found</title></head>\n', 
+      '<html><head><title>File not found</title></head>\n',
       '<body><h1>404 Error</h1>\n',
-      path, 
+      path,
       ' not found.</body></html>'
     ].join('')
   }
@@ -98,7 +98,7 @@ HttpServer.prototype.sendResponse = function( socket, path, headers, body ) {
   try {
     content = "HTTP/1.1 " + userResponse.status + "\n"
     content += "Content-Type: " + userResponse.mimeType + "\n";
-    content += "Server: AmarokServer\n";
+    content += "Server: EiskaltdcppServer\n";
     //content += "Content-Length: " + userResponse.content.length + "\n";
     content += "\r\n";
 
@@ -159,12 +159,19 @@ ApiFacade.prototype.downloadQueue = function downloadQueue() {
   var out = DownloadQueue().getSources();
   var ret = {}
   out.forEach(function(download) {
-     var s = download.split('::', 2);
-     var sources = s[1].trim().split(' ');
-     if (sources.length === 1 && sources[0] === "") {
-        sources = [];
-     }
-     ret[s[0]] = sources;
+    var s = download.split('::', 2);
+    var rawSources = s[1].trim().split(' ');
+    if (rawSources.length === 1 && rawSources[0] === "") {
+      rawSources = [];
+    }
+    // each rawSources looks like this "nick(CID)"
+    // transform to {'CID': 'nick'}
+    var sources = {}
+    for(var ii = 0; ii < rawSources.length; ii++) {
+      var found = rawSources[ii].match(/(.*)\((.*)\)/);
+      sources[found[2]] = found[1];
+    }
+    ret[s[0]] = sources;
   });
   return ret;
 }
@@ -194,7 +201,6 @@ function jsonRpcError(id, message, code) {
   return {jsonrpc: '2.0', id: id, error: {code: code, message: message}};
 }
 
-  
 var httpServer = new HttpServer(8070);
 var apiFacade = new ApiFacade();
 httpServer.register("/api", function(path, headers, body) {

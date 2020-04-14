@@ -1,0 +1,4 @@
+auth=Myers
+name=JSONRPC Notifications
+desc=Send notifications via JSONRPC
+icon=log_file.png

@@ -77,37 +77,50 @@ try {
 
 
   function copyIfNeeded(filepath) {
+    var file = null;
+    var newFile = null;
     try {
       if (filepath.indexOf(".local/share/eiskaltdc++/FileLists") !== -1) {
         // sample file list path
         // "/home/app/.local/share/eiskaltdc++/FileLists/KingDaubach.T4DMF5BOXXKU7A7XT36EMH5XFQQMU3YZMQEA5BQ"
 
         // the filepath for filelists is missing it's extension
-        var file = new QFile(filepath + ".xml.bz2");
+        file = new QFile(filepath + ".xml.bz2");
 
         var filename = filepath.split("/").slice(-1)[0];
         var newpath = ENV["JSONRPC_NOTIFICATION_FILELISTS"] + "/" + filename + ".xml.bz2";
         log("Copying file to " + newpath);
-        var newFile = new QFile(newpath);
+        newFile = new QFile(newpath);
         if (newFile.exists()) {
           log("Removing old file");
           newFile.remove();
         }
         var res = file.copy(newpath);
-        log("copy result: " + res);
+        if (res === false) {
+          throw "failed to copy file";
+        }
         filepath = newpath;
       }
       return filepath;
-    } catch(e) {
-      log("copyIfNeeded error: " + e);
+    } finally {
+      if (file !== null) {
+        file.close();
+      }
+      if (newFile !== null) {
+        newFile.close();
+      }
     }
   }
 
   var queueManager = QueueManagerScript();
 
   function finishedDownload(filepath) {
-    var filepath = copyIfNeeded(filepath);
-    notify('finished_download', [filepath]);
+    try {
+      var filepath = copyIfNeeded(filepath);
+      notify('finished_download', [filepath]);
+    } catch(e) {
+      log("Error while notifing about finishedDownload " + e);
+    }
   }
   queueManager["finished(QString)"].connect(finishedDownload);
 

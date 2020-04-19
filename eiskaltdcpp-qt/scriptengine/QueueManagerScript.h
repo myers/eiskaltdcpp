@@ -31,6 +31,7 @@ friend class dcpp::Singleton<QueueManagerScript>;
 public Q_SLOTS:
     bool add(const QString& aTarget, quint64 aSize, const QString& root, const QString& aUser, const QString& aHub);
     bool addFilelist(const QString& aUser, const QString& aHub);
+    QStringList downloads();
 
 Q_SIGNALS:
     void finished(const QString &filePath);

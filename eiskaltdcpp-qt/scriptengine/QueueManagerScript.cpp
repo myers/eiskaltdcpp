@@ -56,6 +56,41 @@ bool QueueManagerScript::addFilelist(const QString& aUser, const QString& aHub) 
     return true;
 }
 
+
+
+QStringList QueueManagerScript::downloads() {
+    QStringList ret;
+    QString nick = "";
+
+    QM = dcpp::QueueManager::getInstance();
+    const QueueItem::StringMap& ll = QM->lockQueue();
+
+    for (auto it = ll.begin(); it != ll.end(); ++it) {
+        QueueItem* item = it->second;
+        QString target =_q(item->getTargetFileName());
+        QString tth = _q(item->getTTH().toBase32());
+
+        QString users;
+        QueueItem::SourceConstIter s_it = item->getSources().begin();
+
+        for (; s_it != item->getSources().end(); ++s_it){
+            HintedUser usr = s_it->getUser();
+            const dcpp::CID &cid = usr.user->getCID();
+
+            nick = WulforUtil::getInstance()->getNicks(cid, _q(usr.hint));
+
+            if (!nick.isEmpty()){
+                users += nick + "(" + _q(cid.toBase32()) + ") ";
+            }
+        }
+
+        ret.push_back(target + "::" + tth + "::" + users);
+    }
+    QM->unlockQueue();
+
+    return ret;
+}
+
 void QueueManagerScript::on(Finished, QueueItem* item, const dcpp::string& something, int64_t some_number) throw(){
     emit finished(_q(item->getTarget()));
 }

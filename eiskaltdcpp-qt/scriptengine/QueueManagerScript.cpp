@@ -69,6 +69,8 @@ QStringList QueueManagerScript::downloads() {
         QueueItem* item = it->second;
         QString target =_q(item->getTargetFileName());
         QString tth = _q(item->getTTH().toBase32());
+        QString size = QString::number(item->getSize());
+        QString downloaded = QString::number(item->getDownloadedBytes());
 
         QString users;
         QueueItem::SourceConstIter s_it = item->getSources().begin();
@@ -84,7 +86,7 @@ QStringList QueueManagerScript::downloads() {
             }
         }
 
-        ret.push_back(target + "::" + tth + "::" + users);
+        ret.push_back(target + "::" + tth + "::" + size + "::" + downloaded + "::" + users);
     }
     QM->unlockQueue();
 

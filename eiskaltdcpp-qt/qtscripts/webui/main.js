@@ -159,8 +159,13 @@ ApiFacade.prototype.downloadQueue = function downloadQueue() {
   var out = QueueManagerScript().downloads();
   var ret = {}
   out.forEach(function(download) {
-    var s = download.split('::', 3);
-    var rawSources = s[2].trim().split(' ');
+    var s = download.split('::', 5);
+    var filepath = s[0];
+    var tth = s[1];
+    var size = parseInt(s[2]);
+    var downloaded = parseInt(s[3]);
+    var rawSources = s[4].trim().split(' ');
+
     if (rawSources.length === 1 && rawSources[0] === "") {
       rawSources = [];
     }
@@ -171,8 +176,10 @@ ApiFacade.prototype.downloadQueue = function downloadQueue() {
       var found = rawSources[ii].match(/(.*)\((.*)\)/);
       sources[found[2]] = found[1];
     }
-    ret[s[0]] = {
-      tth: s[1],
+    ret[filepath] = {
+      tth: tth,
+      size: size,
+      downloaded: downloaded,
       sources: sources,
     };
   });

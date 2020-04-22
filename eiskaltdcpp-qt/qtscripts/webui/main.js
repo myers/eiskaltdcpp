@@ -206,11 +206,11 @@ function jsonRpcReturn(id, result) {
 
 var JSON_RPC_IMPLEMENTATION_ERROR = -32000;
 var JSON_RPC_PARSE_ERROR = -32000;
-function jsonRpcError(id, message, code) {
+function jsonRpcError(id, message, code, body) {
   if (code == null) {
     code = JSON_RPC_IMPLEMENTATION_ERROR;
   }
-  return {jsonrpc: '2.0', id: id, error: {code: code, message: message}};
+  return {jsonrpc: '2.0', id: id, error: {code: code, message: message, body: body}};
 }
 
 var httpServer = new HttpServer(8070);
@@ -220,7 +220,7 @@ httpServer.register("/api", function(path, headers, body) {
   try {
     var request = JSON.parse(body);
   } catch(e) {
-    return jsonResponse(jsonRpcError(null, e, JSON_RPC_PARSE_ERROR));
+    return jsonResponse(jsonRpcError(null, e, JSON_RPC_PARSE_ERROR, body));
   }
   try {
     result = apiFacade[request.method].apply(apiFacade, request.params);

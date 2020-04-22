@@ -13,7 +13,7 @@
 #include <QDir>
 #include <QDebug>
 #include <iostream>
- 
+
 #include "dcpp/CID.h"
 #include "dcpp/User.h"
 #include "dcpp/QueueItem.h"
@@ -67,7 +67,8 @@ QStringList QueueManagerScript::downloads() {
 
     for (auto it = ll.begin(); it != ll.end(); ++it) {
         QueueItem* item = it->second;
-        QString target =_q(item->getTargetFileName());
+        QString target =_q(item->getTarget());
+        QString added = _q(Util::formatTime("%Y-%m-%dT%H:%M:%S%z", item->getAdded()));
         QString tth = _q(item->getTTH().toBase32());
         QString size = QString::number(item->getSize());
         QString downloaded = QString::number(item->getDownloadedBytes());
@@ -86,7 +87,14 @@ QStringList QueueManagerScript::downloads() {
             }
         }
 
-        ret.push_back(target + "::" + tth + "::" + size + "::" + downloaded + "::" + users);
+        ret.push_back(
+            target + "::" +
+            tth + "::" +
+            size + "::" +
+            downloaded + "::" +
+            added + "::" +
+            users
+            );
     }
     QM->unlockQueue();
 

@@ -21,6 +21,10 @@
 Import("qt.core");
 Import("qt.network");
 
+function log(msg) {
+  printErr((new Date()).toISOString() + " - webui - " + msg);
+}
+
 QByteArray.prototype.toString = function()
 {
    ts = new QTextStream( this, QIODevice.ReadOnly );
@@ -35,10 +39,10 @@ HttpServer = function(portNumber)
     portNumber++;
   } while( !connected && ((this.serverError() & QAbstractSocket.AddressInUseError) == 0 ) && portNumber < 9000 )
   if( !this.isListening() ) {
-    printErr( "Unable to open a port for the web server" );
+    log( "Unable to open a port for the web server" );
     return;
   }
-  printErr("Web server started at port " + this.serverPort() );
+  log("Web server started at port " + this.serverPort() );
   this.newConnection.connect( this, this.newIncomingConnection );
   this.registry = new Object();
 }
@@ -52,6 +56,7 @@ HttpServer.prototype.newIncomingConnection = function()
   var self = this;
   socket.readyRead.connect( function() {
     request.append( socket.readAll() );
+    log("request debug: " + JSON.stringify(request));
     var endOfRequest =  request.indexOf("\r\n\r\n");
     if ( endOfRequest > 0 ) {
       try {
@@ -59,8 +64,8 @@ HttpServer.prototype.newIncomingConnection = function()
         var body = request.mid( endOfRequest + 4 );
         self.sendResponse( socket, headers.path(), headers, body );
         socket.close();
-      } catch( error ) {
-        printErr( error)
+      } catch(error) {
+        log(error);
       }
     }
   });
@@ -82,7 +87,7 @@ HttpServer.prototype.fourOhFour = function(path) {
 HttpServer.prototype.sendResponse = function( socket, path, headers, body ) {
   var userResponse = null;
   for( var registeredPath in this.registry ) {
-    //printErr( path.indexOf( registeredPath ) + " for " + registeredPath + " in " + path );
+    //log( path.indexOf( registeredPath ) + " for " + registeredPath + " in " + path );
     if( path.indexOf( registeredPath ) == 0 ) {
       userResponse = this.registry[registeredPath]( path.substring( registeredPath.length ), headers, body);
       break;
@@ -107,7 +112,7 @@ HttpServer.prototype.sendResponse = function( socket, path, headers, body ) {
     writeMe.append( userResponse.content );
     socket.write( writeMe );
   } catch( e ) {
-    printErr( e );
+    log( e );
   }
 }
 
@@ -205,7 +210,7 @@ function jsonRpcReturn(id, result) {
 }
 
 var JSON_RPC_IMPLEMENTATION_ERROR = -32000;
-var JSON_RPC_PARSE_ERROR = -32000;
+var JSON_RPC_PARSE_ERROR = -32700;
 function jsonRpcError(id, message, code, body) {
   if (code == null) {
     code = JSON_RPC_IMPLEMENTATION_ERROR;

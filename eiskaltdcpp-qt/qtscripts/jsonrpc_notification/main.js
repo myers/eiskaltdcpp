@@ -2,7 +2,7 @@ Import("qt.core");
 Import("qt.network");
 
 function log(msg) {
-  printErr((new Date()).toISOString() + " - " + msg);
+  printErr((new Date()).toISOString() + " - jsonrpc_notification - " + msg);
 }
 
 function post(url, data, callback) {

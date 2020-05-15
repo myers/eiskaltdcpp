@@ -35,6 +35,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void finished(const QString &filePath);
+    void finishedFilelist(const QString &filePath, const QString &nick, const QString &hubUrl);
     void sourcesUpdated(const QString &tth, const QStringList &badSources);
 
 protected:

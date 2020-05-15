@@ -101,8 +101,25 @@ QStringList QueueManagerScript::downloads() {
     return ret;
 }
 
-void QueueManagerScript::on(Finished, QueueItem* item, const dcpp::string& something, int64_t some_number) throw(){
-    emit finished(_q(item->getTarget()));
+void QueueManagerScript::on(Finished, QueueItem* item, const dcpp::string& dir, int64_t average_speed) throw() {
+
+    if (item->isSet(QueueItem::FLAG_USER_LIST)) {
+        dcpp::ClientManager *CM = dcpp::ClientManager::getInstance();
+        const dcpp::OnlineUser *onlineUser;
+
+        QueueItem::SourceConstIter s_it = item->getSources().begin();
+        for (; s_it != item->getSources().end(); ++s_it) {
+            onlineUser = CM->findOnlineUser(s_it->getUser(), false);
+            break;
+        }
+        if (onlineUser == 0) {
+          return;
+        }
+
+        emit finishedFilelist(_q(item->getListName()), _q(onlineUser->getIdentity().getNick()), _q(onlineUser->getClient().getHubUrl()));
+    } else {
+        emit finished(_q(item->getTarget()));
+    }
 }
 
 void QueueManagerScript::on(SourcesUpdated, dcpp::QueueItem* item) throw() {

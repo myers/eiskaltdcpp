@@ -1,6 +1,12 @@
 Import("qt.core");
 Import("qt.network");
 
+QByteArray.prototype.toString = function()
+{
+   ts = new QTextStream( this, QIODevice.ReadOnly );
+   return ts.readAll();
+}
+
 function log(msg) {
   printErr((new Date()).toISOString() + " - jsonrpc_notification - " + msg);
 }
@@ -24,7 +30,7 @@ function post(url, data, callback) {
       var body = codec.toUnicode(result);
       callback(JSON.parse(body));
     } catch (e) {
-      log("post error: " + e);
+      log("post error: " + e + " result = " + JSON.stringify(result.toString()));
     }
   }
 

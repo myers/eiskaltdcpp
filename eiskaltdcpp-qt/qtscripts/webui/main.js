@@ -54,20 +54,41 @@ HttpServer.prototype.newIncomingConnection = function()
   var socket = this.nextPendingConnection();
   var request = new QByteArray();
   var self = this;
+  var body = "";
+  var headers = null;
   socket.readyRead.connect( function() {
     request.append( socket.readAll() );
-    log("request debug: " + JSON.stringify(request));
-    var endOfRequest =  request.indexOf("\r\n\r\n");
-    if ( endOfRequest > 0 ) {
+    log("request debug: " + JSON.stringify(request.toString()));
+    var endOfHeaders =  request.indexOf("\r\n\r\n");
+    if ( headers == null && endOfHeaders > 0 ) {
       try {
-        var headers = new QHttpRequestHeader( request.left( endOfRequest + 4 ).toString() );
-        var body = request.mid( endOfRequest + 4 );
-        self.sendResponse( socket, headers.path(), headers, body );
-        socket.close();
+        headers = new QHttpRequestHeader( request.left( endOfHeaders + 4 ).toString() );
       } catch(error) {
         log(error);
+        // should 400 here
+        socket.close();
+        return;
       }
     }
+
+    if ( headers && !headers.hasContentLength()) {
+      log("request didn't have content length header");
+      // TODO: should 400 here
+      socket.close();
+      return;
+    }
+
+    if ( headers && headers.contentLength()) {
+      var body = request.mid( endOfHeaders + 4 );
+      if ( body.size() >= headers.contentLength() ) {
+        self.sendResponse( socket, headers.path(), headers, body );
+        socket.close();
+        return;
+      }
+    }
+
+    log("Waiting for more data for request...");
+
   });
 }
 
@@ -86,6 +107,7 @@ HttpServer.prototype.fourOhFour = function(path) {
 
 HttpServer.prototype.sendResponse = function( socket, path, headers, body ) {
   var userResponse = null;
+  log("webui - " + headers.method() + " " + path);
   for( var registeredPath in this.registry ) {
     //log( path.indexOf( registeredPath ) + " for " + registeredPath + " in " + path );
     if( path.indexOf( registeredPath ) == 0 ) {
